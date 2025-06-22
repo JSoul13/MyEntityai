@@ -323,12 +323,12 @@
             };
 
             const handlePayPerUse = async () => {
-                alert(`Processing $4.99 payment for: ${paywallAction}\\n\\nIn a real app, this would redirect to Stripe Checkout.\\n\\nFor demo purposes, use the Pro account: prodemo@entityai.com / EntityPro123!`);
+                alert(`Processing\$4.99 payment for: ${paywallAction}\\n\\nIn a real app, this would redirect to Stripe Checkout.\\n\\nFor demo purposes, use the Pro account: prodemo@entityai.com / EntityPro123!`);
                 setShowPaywall(false);
             };
 
             const handleSubscribePro = async () => {
-                alert("Processing Pro subscription ($19.99/month)\\n\\nIn a real app, this would redirect to Stripe Checkout.\\n\\nFor demo purposes, use the Pro account: prodemo@entityai.com / EntityPro123!");
+                alert("Processing Pro subscription \$19.99/month)\\n\\nIn a real app, this would redirect to Stripe Checkout.\\n\\nFor demo purposes, use the Pro account: prodemo@entityai.com / EntityPro123!");
                 setShowPaywall(false);
             };
 
@@ -617,7 +617,7 @@
                                         onClick={handlePayPerUse}
                                         className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-6 rounded-lg font-semibold transition-all"
                                     >
-                                        Pay $4.99 Now
+                                        Pay\$4.99 Now
                                     </button>
                                 </div>
                                 
@@ -628,7 +628,7 @@
                                         onClick={handleSubscribePro}
                                         className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-3 px-6 rounded-lg font-semibold transition-all"
                                     >
-                                        Subscribe $19.99/month
+                                        Subscribe\$19.99/month
                                     </button>
                                 </div>
                             </div>
@@ -661,7 +661,7 @@
                                     onClick={handleSubscribePro} 
                                     className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3 rounded-lg font-semibold transition-all"
                                 >
-                                    Upgrade to Pro - $19.99/month
+                                    Upgrade to Pro -\$19.99/month
                                 </button>
                             </div>
                         )}
@@ -744,7 +744,7 @@
                                                     : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                                             }`}
                                         >
-                                            {userProfile?.isPro ? 'Join Investigation' : 'Join ($4.99)'}
+                                            {userProfile?.isPro ? 'Join Investigation' : 'Join \$4.99)'}
                                         </button>
                                     </div>
                                 ))}
@@ -786,7 +786,7 @@
                         {!userProfile?.isPro && (
                             <p className="text-gray-400 text-sm mt-4">
                                 <i className="fas fa-info-circle mr-2"></i>
-                                Analysis requires Pro subscription or $4.99 per upload
+                                Analysis requires Pro subscription or\$4.99 per upload
                             </p>
                         )}
                     </div>
@@ -806,7 +806,7 @@
                                 onClick={performAnalysis}
                                 className="mt-6 w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-3 rounded-lg font-semibold transition-all"
                             >
-                                {userProfile?.isPro ? 'Start AI Analysis' : 'Analyze ($4.99)'}
+                                {userProfile?.isPro ? 'Start AI Analysis' : 'Analyze \$4.99)'}
                             </button>
                         </div>
                     )}
@@ -953,7 +953,7 @@
                                             : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                                     }`}
                                 >
-                                    {userProfile?.isPro ? 'Join Investigation' : 'Join ($4.99)'}
+                                    {userProfile?.isPro ? 'Join Investigation' : 'Join \$4.99)'}
                                 </button>
                             </div>
                         ))}
@@ -1020,7 +1020,7 @@
                                                     : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                                             }`}
                                         >
-                                            {userProfile?.isPro ? 'Join Group' : 'Join ($4.99)'}
+                                            {userProfile?.isPro ? 'Join Group' : 'Join \$4.99)'}
                                         </button>
                                     </div>
                                 ))}
@@ -1095,4 +1095,4 @@
                                         <p className="text-white font-medium">{case_.anomalies}</p>
                                     </div>
                                     <div>
-                                        <span className="text-gray-400 text-sm">EVPs</span>
+                                        <span className="text-gray-400 text-sm">EVPs
