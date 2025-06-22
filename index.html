@@ -33,7 +33,278 @@
     <div id="root"></div>
     <div id="error-container"></div>
     <script type="text/babel">
+        // --- MOCK DATA ---
+        const mockCases = [
+            {
+                id: 1,
+                name: "Abandoned Hospital Investigation",
+                date: "2024-06-15",
+                location: "St. Mary's Hospital, Salem",
+                anomalies: 7,
+                evps: 3,
+                status: "analyzed",
+                collaborators: ["@GhostHunter92", "@ParanormalPro"],
+                isPublic: true
+            },
+            {
+                id: 2,
+                name: "Cemetery Midnight Session",
+                date: "2024-06-10",
+                location: "Greenlawn Cemetery",
+                anomalies: 12,
+                evps: 5,
+                status: "processing",
+                collaborators: ["@SpiritSeeker"],
+                isPublic: false
+            }
+        ];
+        const mockHauntedLocations = [
+            {
+                id: 1,
+                name: "Eastern State Penitentiary",
+                location: "Philadelphia, PA",
+                coordinates: { lat: 39.9686, lng: -75.1725 },
+                activityLevel: "high",
+                evidenceCount: 47,
+                investigators: 23,
+                lastActivity: "2 hours ago",
+                description: "Historic prison with intense paranormal activity",
+                recentEvidence: ["Shadow figure in Cell Block 12", "EVP: 'Get out'", "Temperature drop of 15°F"]
+            },
+            {
+                id: 2,
+                name: "Waverly Hills Sanatorium",
+                location: "Louisville, KY",
+                coordinates: { lat: 38.1347, lng: -85.9067 },
+                activityLevel: "extreme",
+                evidenceCount: 89,
+                investigators: 41,
+                lastActivity: "30 minutes ago",
+                description: "Former tuberculosis hospital, one of the most haunted places in America",
+                recentEvidence: ["Full body apparition in Room 502", "Multiple EVPs recorded", "Doors slamming shut"]
+            },
+            {
+                id: 3,
+                name: "Tower of London",
+                location: "London, UK",
+                coordinates: { lat: 51.5081, lng: -0.0759 },
+                activityLevel: "high",
+                evidenceCount: 34,
+                investigators: 18,
+                lastActivity: "1 day ago",
+                description: "Historic castle with centuries of paranormal reports",
+                recentEvidence: ["Anne Boleyn sighting", "Phantom footsteps", "Cold spots in Bloody Tower"]
+            },
+            {
+                id: 4,
+                name: "Poveglia Island",
+                location: "Venice, Italy",
+                coordinates: { lat: 45.3647, lng: 12.2967 },
+                activityLevel: "extreme",
+                evidenceCount: 67,
+                investigators: 29,
+                lastActivity: "5 hours ago",
+                description: "Former plague quarantine station with dark history",
+                recentEvidence: ["Screaming voices at night", "Ash falling from sky", "Phantom plague victims"]
+            }
+        ];
+        const mockAnalysis = {
+            videoAnomalies: [
+                { timestamp: "00:02:34", type: "Shadow Movement", confidence: 87 },
+                { timestamp: "00:05:12", type: "Orb Detection", confidence: 92 },
+                { timestamp: "00:08:45", type: "Facial Pattern", confidence: 73 }
+            ],
+            audioAnomalies: [
+                { timestamp: "00:03:15", type: "EVP Detected", text: "Help me", confidence: 85 },
+                { timestamp: "00:06:22", type: "Whisper", text: "Unknown", confidence: 67 }
+            ],
+            contextualData: {
+                moonPhase: "Waning Gibbous (78%)",
+                weather: "Clear, 62°F, Low Humidity",
+                geomagneticActivity: "Moderate (Kp-index: 4)"
+            }
+        };
+
+        // --- COMPONENTS ---
+        function EntityLogo({ size = "text-2xl" }) {
+            return (
+                <div className="flex flex-col items-center mb-2">
+                    {/* Halo */}
+                    <svg width="60" height="20">
+                        <ellipse cx="30" cy="10" rx="18" ry="6" fill="none" stroke="#ffe600" strokeWidth="4" />
+                    </svg>
+                    {/* Ghost Body */}
+                    <div className="relative">
+                        {/* Horns */}
+                        <svg width="60" height="30" className="absolute -top-5 left-0">
+                            <path d="M15 25 Q10 10 20 15" stroke="#ff2fa0" strokeWidth="4" fill="none" />
+                            <path d="M45 25 Q50 10 40 15" stroke="#ff2fa0" strokeWidth="4" fill="none" />
+                        </svg>
+                        {/* Body */}
+                        <svg width="60" height="70">
+                            <ellipse cx="30" cy="30" rx="22" ry="28" fill="#fff" />
+                            <path d="M8 50 Q30 70 52 50 Q45 65 30 60 Q15 65 8 50" fill="#fff" />
+                            {/* Eyes */}
+                            <ellipse cx="22" cy="32" rx="3" ry="5" fill="#222" />
+                            <ellipse cx="38" cy="32" rx="3" ry="5" fill="#222" />
+                            {/* Mouth */}
+                            <ellipse cx="30" cy="44" rx="5" ry="2" fill="#222" />
+                        </svg>
+                    </div>
+                    <span className="font-extrabold text-3xl mt-2" style={{ fontFamily: "'Creepster', cursive", color: "#fff" }}>
+                        <span style={{ color: "#ff2fa0", textShadow: "0 0 8px #ff2fa0" }}>Entity</span>
+                        <span className="ml-2" style={{ color: "#ffe600", textShadow: "0 0 8px #ffe600" }}>AI</span>
+                    </span>
+                </div>
+            );
+        }
+
+        function Navigation({ currentView, setCurrentView }) {
+            const views = ['dashboard', 'upload', 'analysis', 'maps', 'community', 'cases', 'contact'];
+            return (
+                <nav className="flex items-center justify-between px-6 py-4 bg-black bg-opacity-80 shadow-lg">
+                    <EntityLogo />
+                    <div className="flex gap-2">
+                        {views.map(view => (
+                            <button
+                                key={view}
+                                onClick={() => setCurrentView(view)}
+                                className={`px-4 py-2 rounded transition-all font-bold uppercase tracking-wider text-sm ${
+                                    currentView === view
+                                        ? 'bg-pink-500 text-white shadow-lg shadow-pink-500/50'
+                                        : 'text-gray-300 hover:text-pink-400 hover:bg-gray-900'
+                                }`}
+                            >
+                                {view.charAt(0).toUpperCase() + view.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                </nav>
+            );
+        }
+
+        function Dashboard() {
+            return (
+                <div>
+                    <h1 className="text-4xl font-extrabold mb-2">Welcome to the Entity Core</h1>
+                    <p className="mb-6 text-lg opacity-80">Advanced AI-Powered Paranormal Evidence Analysis & Global Community Collaboration</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                        <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+                            <span className="text-2xl">📊</span>
+                            <span className="text-lg font-bold">{mockCases.length}</span>
+                            <span className="text-xs opacity-70">Total Cases</span>
+                        </div>
+                        <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+                            <span className="text-2xl">🔍</span>
+                            <span className="text-lg font-bold">19</span>
+                            <span className="text-xs opacity-70">Anomalies Detected</span>
+                        </div>
+                        <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+                            <span className="text-2xl">🎵</span>
+                            <span className="text-lg font-bold">8</span>
+                            <span className="text-xs opacity-70">EVPs Captured</span>
+                        </div>
+                        <div className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+                            <span className="text-2xl">🌍</span>
+                            <span className="text-lg font-bold">{mockHauntedLocations.length}</span>
+                            <span className="text-xs opacity-70">Global Locations</span>
+                        </div>
+                    </div>
+                    <h2 className="text-xl font-bold mb-2">Recent Investigations</h2>
+                    <div className="grid md:grid-cols-2 gap-4 mb-8">
+                        {mockCases.map(case_ => (
+                            <div key={case_.id} className="bg-gray-900 rounded-lg p-4 shadow">
+                                <div className="flex justify-between items-center mb-1">
+                                    <span className="font-bold">{case_.name}</span>
+                                    <span className="text-xs opacity-60">{case_.date}</span>
+                                </div>
+                                <div className="text-xs opacity-70 mb-2">{case_.location}</div>
+                                <div className="flex gap-2 mb-2">
+                                    {case_.collaborators.map(collab => (
+                                        <span key={collab} className="bg-purple-700 text-xs px-2 py-1 rounded">{collab}</span>
+                                    ))}
+                                </div>
+                                <div className="flex gap-4 text-xs">
+                                    <span>{case_.anomalies} anomalies</span>
+                                    <span>{case_.evps} EVPs</span>
+                                    <span className="uppercase">{case_.status}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <h2 className="text-xl font-bold mb-2">Global Hotspots</h2>
+                    <div className="grid md:grid-cols-3 gap-4">
+                        {mockHauntedLocations.slice(0, 3).map(location => (
+                            <div key={location.id} className="bg-gray-900 rounded-lg p-4 shadow">
+                                <div className="font-bold">{location.name}</div>
+                                <div className="text-xs opacity-70 mb-1">{location.location}</div>
+                                <div className="text-xs mb-2">{location.description}</div>
+                                <div className="flex gap-2 text-xs">
+                                    <span>{location.evidenceCount} evidence</span>
+                                    <span>{location.investigators} investigators</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
         function App() {
             const [currentView, setCurrentView] = React.useState('dashboard');
-            const [uploadedFiles, setUploadedFiles] = React.useState([]);
-            const [analysisResults, setAnalysisResults] = React.
+            // Add more state as needed for uploads, analysis, etc.
+
+            function renderCurrentView() {
+                switch(currentView) {
+                    case 'dashboard': return <Dashboard />;
+                    // Add other views here (upload, analysis, maps, community, cases, contact)
+                    default: return <Dashboard />;
+                }
+            }
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white">
+                    <Navigation currentView={currentView} setCurrentView={setCurrentView} />
+                    <main className="container mx-auto px-4 py-8">
+                        {renderCurrentView()}
+                    </main>
+                    {/* Subscription Banner */}
+                    <div className="fixed bottom-4 right-4 bg-gradient-to-r from-purple-600 to-pink-600 p-4 rounded-lg shadow-lg max-w-sm">
+                        <h3 className="font-bold text-sm">Upgrade to Entity Pro</h3>
+                        <p className="text-xs opacity-90">Unlimited analysis • Global map access • Community collaboration • Expert reviews • Help free spirits worldwide</p>
+                        <button className="mt-2 bg-white text-purple-600 px-3 py-1 rounded text-xs font-semibold hover:bg-gray-100 transition-all">
+                            Subscribe Now
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // --- RENDER APP ---
+        try {
+            ReactDOM.render(<App />, document.getElementById('root'));
+        } catch(error) {
+            displayError('An error occurred while loading the application.');
+        }
+
+        window.addEventListener('error', function(event) {
+            displayError(event.message, event.error?.stack);
+        });
+
+        function displayError(message, stackInfo) {
+            const errorContainer = document.getElementById('error-container');
+            const errorMessage = document.createElement('div');
+            errorMessage.textContent = message;
+            errorContainer.appendChild(errorMessage);
+            if(stackInfo) {
+                const stackErrorMessage = document.createElement('pre');
+                stackErrorMessage.textContent = stackInfo.substring(0, 130);
+                errorContainer.appendChild(stackErrorMessage);
+            }
+            errorContainer.style.display = 'block';
+        }
+    </script>
+    <!-- Optional: Creepster font for horror style -->
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
+</body>
+</html>
