@@ -1,6 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+const EntityLogo = ({ width = 300, height = 600 }) => (
+  <div style={{
+    width,
+    height,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    background: '#000',
+    borderRadius: 24,
+    boxShadow: '0 0 40px 10px #a78bfa55',
+    padding: 24
+  }}>
+    <svg
+      width={220}
+      height={340}
+      viewBox="0 0 110 170"
+      style={{ display: 'block', filter: 'drop-shadow(0 0 24px #a78bfa)' }}
+    >
+      {/* Neon Yellow Halo */}
+      <ellipse
+        cx="55"
+        cy="28"
+        rx="38"
+        ry="7"
+        fill="none"
+        stroke="#ffff00"
+        strokeWidth="3"
+        style={{ filter: 'drop-shadow(0 0 8px #ffff00)' }}
+      />
+      {/* Ghost Body */}
+      <path
+        d="M55 40
+           C30 40, 18 60, 18 90
+           L18 150
+           L28 140
+           L38 150
+           L48 140
+           L58 150
+           L68 140
+           L78 150
+           L92 150
+           L92 90
+           C92 60, 80 40, 55 40
+           Z"
+        fill="#fff"
+        stroke="#fff"
+        strokeWidth="1"
+        style={{ filter: 'drop-shadow(0 0 16px #a78bfa)' }}
+      />
+      {/* Neon Pink Devil Horns */}
+      <polygon
+        points="38,38 32,18 46,28"
+        fill="#ff0080"
+        style={{ filter: 'drop-shadow(0 0 6px #ff0080)' }}
+      />
+      <polygon
+        points="72,38 78,18 64,28"
+        fill="#ff0080"
+        style={{ filter: 'drop-shadow(0 0 6px #ff0080)' }}
+      />
+      {/* Eyes */}
+      <ellipse cx="45" cy="75" rx="6" ry="8" fill="#111" />
+      <ellipse cx="65" cy="75" rx="6" ry="8" fill="#111" />
+      {/* Mouth */}
+      <ellipse cx="55" cy="100" rx="8" ry="12" fill="#111" />
+    </svg>
+    <span
+      style={{
+        marginTop: 24,
+        fontFamily: "'Creepster', 'Chiller', 'Nosifer', cursive",
+        fontSize: 48,
+        color: '#fff',
+        textShadow: '0 0 10px #ff0080, 0 0 20px #ff0080, 0 0 30px #ff0080'
+      }}
+    >
+      ENTITY
+    </span>
+  </div>
+);
+
+export default EntityLogo;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Entity: The Paranormal Evidence AI</title>
