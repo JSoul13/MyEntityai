@@ -66,14 +66,13 @@
     <script type="text/babel">
         // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
         const firebaseConfig = {
-            apiKey: "AIzaSyCa_L8Hf-HpOucA09fF14kECmyGNy7mNz0",
+            apiKey: "AIzaSyB...", // REPLACE WITH YOUR ACTUAL API KEY
             authDomain: "entity-paranormal-ai.firebaseapp.com",
-            databaseURL: "https://entity-paranormal-ai-default-rtdb.firebaseio.com",
             projectId: "entity-paranormal-ai",
-            storageBucket: "entity-paranormal-ai.firebasestorage.app",
-            messagingSenderId: "194851934791",
-            appId: "1:194851934791:web:62b84d19b0ba6088bf1762",
-            measurementId: "G-K1536GWN62"
+            storageBucket: "entity-paranormal-ai.appspot.com",
+            messagingSenderId: "123456789", // REPLACE WITH YOUR ACTUAL SENDER ID
+            appId: "1:123456789:web:abcdefg", // REPLACE WITH YOUR ACTUAL APP ID
+            measurementId: "G-ABCDEFG" // REPLACE WITH YOUR ACTUAL MEASUREMENT ID
         };
 
         // Initialize Firebase
@@ -704,4 +703,28 @@
         ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
-</html>
+</html>'''
+
+# Write the file
+with open('entity_complete_with_full_registration.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print("✅ Complete Entity Paranormal AI app with FULL REGISTRATION created!")
+print("📁 File saved as: entity_complete_with_full_registration.html")
+print("\n🔧 IMPORTANT: You still need to replace these placeholders:")
+print("1. Firebase config values (apiKey, authDomain, etc.)")
+print("2. Your backend URL for Stripe (if you have one)")
+print("\n🚀 NEW FEATURES:")
+print("✅ FULL REGISTRATION FORM:")
+print("   - First Name")
+print("   - Last Name") 
+print("   - Email")
+print("   - Password")
+print("   - Phone Number")
+print("   - Backup Email/Phone")
+print("✅ OMINOUS DESIGN - No preview without account!")
+print("✅ Enhanced UI with icons and better styling")
+print("✅ User profile shows full name in navigation")
+print("✅ All user data saved to Firestore")
+print("✅ Form validation for all required fields")
+print("✅ Your live Stripe key already included!")
