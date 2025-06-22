@@ -1,4 +1,4 @@
-# Create the complete Entity Paranormal AI app with Firebase Auth and Stripe
+# Create the complete Entity Paranormal AI app with enhanced registration form
 html_content = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,16 +10,6 @@ html_content = '''<!DOCTYPE html>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Firebase v9 SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js';
-        import { getAuth } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js';
-        import { getFirestore } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
-        window.firebaseApp = initializeApp;
-        window.firebaseAuth = getAuth;
-        window.firebaseFirestore = getFirestore;
-    </script>
     
     <!-- Firebase Compat for easier use -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -54,6 +44,22 @@ html_content = '''<!DOCTYPE html>
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .ominous-bg {
+            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1) 0%, rgba(0, 0, 0, 0.9) 50%, #000000 100%);
+        }
+        .form-field {
+            background: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        .form-field:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+            background: rgba(17, 24, 39, 0.9);
+        }
+        .ghost-shadow {
+            filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5));
+        }
     </style>
 </head>
 <body>
@@ -75,8 +81,8 @@ html_content = '''<!DOCTYPE html>
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // Stripe Configuration - REPLACE WITH YOUR ACTUAL STRIPE KEY
-        const stripe = Stripe("pk_test_YOUR_STRIPE_PUBLISHABLE_KEY"); // REPLACE WITH YOUR ACTUAL STRIPE KEY
+        // Stripe Configuration - YOUR LIVE KEY
+        const stripe = Stripe("pk_live_51RcjDXJnh7g2pvRQN6qjFRBEB3SxiTdzrgijbrslDy4G2XbGSHBpOAhKZ8G7U3rSGGmbpQCqM8hZmcxZx1mYpBrv00iVexVeNG");
 
         function App() {
             const [user, setUser] = React.useState(null);
@@ -84,8 +90,15 @@ html_content = '''<!DOCTYPE html>
             const [loading, setLoading] = React.useState(true);
             const [showAuth, setShowAuth] = React.useState(false);
             const [authMode, setAuthMode] = React.useState("login");
+            
+            // Form fields
             const [email, setEmail] = React.useState("");
             const [password, setPassword] = React.useState("");
+            const [firstName, setFirstName] = React.useState("");
+            const [lastName, setLastName] = React.useState("");
+            const [phone, setPhone] = React.useState("");
+            const [backupContact, setBackupContact] = React.useState("");
+            
             const [authError, setAuthError] = React.useState("");
             const [authLoading, setAuthLoading] = React.useState(false);
             const [currentView, setCurrentView] = React.useState('dashboard');
@@ -101,16 +114,8 @@ html_content = '''<!DOCTYPE html>
                             if (userDoc.exists) {
                                 setUserProfile(userDoc.data());
                             } else {
-                                // Create new user profile
-                                const newProfile = {
-                                    email: user.email,
-                                    isPro: false,
-                                    analysisCount: 0,
-                                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                                    lastAnalysisReset: firebase.firestore.FieldValue.serverTimestamp()
-                                };
-                                await db.collection('users').doc(user.uid).set(newProfile);
-                                setUserProfile(newProfile);
+                                // This shouldn't happen with the new registration flow
+                                console.error("User document not found");
                             }
                         } catch (error) {
                             console.error("Error fetching user profile:", error);
@@ -124,6 +129,17 @@ html_content = '''<!DOCTYPE html>
                 return () => unsubscribe();
             }, []);
 
+            // Clear form fields
+            const clearForm = () => {
+                setEmail("");
+                setPassword("");
+                setFirstName("");
+                setLastName("");
+                setPhone("");
+                setBackupContact("");
+                setAuthError("");
+            };
+
             // Authentication handlers
             const handleLogin = async (e) => {
                 e.preventDefault();
@@ -132,8 +148,7 @@ html_content = '''<!DOCTYPE html>
                 try {
                     await auth.signInWithEmailAndPassword(email, password);
                     setShowAuth(false);
-                    setEmail("");
-                    setPassword("");
+                    clearForm();
                 } catch (error) {
                     setAuthError(error.message);
                 }
@@ -144,11 +159,33 @@ html_content = '''<!DOCTYPE html>
                 e.preventDefault();
                 setAuthLoading(true);
                 setAuthError("");
+                
+                // Validation
+                if (!firstName.trim() || !lastName.trim() || !phone.trim() || !backupContact.trim()) {
+                    setAuthError("All fields are required");
+                    setAuthLoading(false);
+                    return;
+                }
+                
                 try {
-                    await auth.createUserWithEmailAndPassword(email, password);
+                    // Create Firebase user
+                    const cred = await auth.createUserWithEmailAndPassword(email, password);
+                    
+                    // Save complete user profile to Firestore
+                    await db.collection('users').doc(cred.user.uid).set({
+                        firstName: firstName.trim(),
+                        lastName: lastName.trim(),
+                        email: email.trim(),
+                        phone: phone.trim(),
+                        backupContact: backupContact.trim(),
+                        isPro: false,
+                        analysisCount: 0,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastAnalysisReset: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
                     setShowAuth(false);
-                    setEmail("");
-                    setPassword("");
+                    clearForm();
                 } catch (error) {
                     setAuthError(error.message);
                 }
@@ -167,8 +204,23 @@ html_content = '''<!DOCTYPE html>
             // Stripe checkout for Pro subscription
             const handleUpgradeToPro = async () => {
                 try {
-                    // In a real app, you'd call your backend to create a Stripe Checkout session
-                    // For now, we'll simulate the upgrade process
+                    // Replace with your actual backend URL
+                    const response = await fetch('https://YOUR-BACKEND-URL/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            uid: user.uid,
+                            email: user.email,
+                        }),
+                    });
+                    const data = await response.json();
+                    if (data.sessionId) {
+                        await stripe.redirectToCheckout({ sessionId: data.sessionId });
+                    } else {
+                        alert('Error creating Stripe session. Please try again.');
+                    }
+                } catch (error) {
+                    // Fallback for demo - remove this in production
                     alert("Stripe integration: In a real app, this would redirect to Stripe Checkout for $19.99/month subscription.");
                     
                     // Simulate successful payment (remove this in production)
@@ -179,9 +231,6 @@ html_content = '''<!DOCTYPE html>
                         });
                         setUserProfile(prev => ({ ...prev, isPro: true }));
                     }
-                } catch (error) {
-                    console.error("Error upgrading to Pro:", error);
-                    alert("Error upgrading to Pro. Please try again.");
                 }
             };
 
@@ -209,7 +258,7 @@ html_content = '''<!DOCTYPE html>
             // Enhanced Ghost Logo Component
             const EntityLogo = ({ size = "text-2xl" }) => (
                 <div className="flex items-center space-x-3">
-                    <div className="relative">
+                    <div className="relative ghost-shadow">
                         <svg width="60" height="60" viewBox="0 0 60 60" className="drop-shadow-lg">
                             {/* Neon Yellow Halo */}
                             <ellipse cx="30" cy="15" rx="25" ry="4" fill="none" stroke="#ffff00" strokeWidth="2" className="neon-glow" style={{filter: 'drop-shadow(0 0 8px #ffff00)'}} />
@@ -238,61 +287,105 @@ html_content = '''<!DOCTYPE html>
             // Loading screen
             if (loading) {
                 return (
-                    <div className="min-h-screen bg-black flex items-center justify-center">
+                    <div className="min-h-screen bg-black ominous-bg flex items-center justify-center">
                         <div className="text-center">
                             <EntityLogo size="text-4xl" />
                             <div className="mt-4 loading-spinner mx-auto"></div>
-                            <p className="text-purple-300 mt-2">Loading...</p>
+                            <p className="text-purple-300 mt-2">Initializing Entity...</p>
                         </div>
                     </div>
                 );
             }
 
-            // Authentication screen for non-logged-in users
+            // Authentication screen for non-logged-in users (OMINOUS - NO PREVIEW)
             if (!user) {
                 return (
-                    <div className="min-h-screen bg-black flex items-center justify-center">
+                    <div className="min-h-screen bg-black ominous-bg flex items-center justify-center">
                         <div className="text-center max-w-md mx-auto p-8">
                             <EntityLogo size="text-4xl" />
                             <h1 className="text-3xl font-bold text-white mt-6 mb-4">
-                                Welcome to Entity
+                                Access Restricted
                             </h1>
                             <p className="text-gray-300 mb-8">
-                                Advanced AI-Powered Paranormal Evidence Analysis. 
-                                Create an account to start analyzing paranormal evidence.
+                                Entity requires authentication to access paranormal evidence analysis systems.
+                                <br /><br />
+                                <span className="text-purple-300 text-sm">Create an account or sign in to proceed.</span>
                             </p>
                             
                             <div className="space-y-4">
                                 <button
                                     onClick={() => { setShowAuth(true); setAuthMode("login"); }}
-                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold transition-all"
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold transition-all neon-glow"
                                 >
+                                    <i className="fas fa-sign-in-alt mr-2"></i>
                                     Sign In
                                 </button>
                                 <button
                                     onClick={() => { setShowAuth(true); setAuthMode("register"); }}
-                                    className="w-full bg-pink-600 hover:bg-pink-700 text-white py-3 px-6 rounded-lg font-semibold transition-all"
+                                    className="w-full bg-pink-600 hover:bg-pink-700 text-white py-3 px-6 rounded-lg font-semibold transition-all neon-glow"
                                 >
+                                    <i className="fas fa-user-plus mr-2"></i>
                                     Create Account
                                 </button>
                             </div>
 
-                            {/* Authentication Modal */}
+                            {/* Enhanced Authentication Modal */}
                             {showAuth && (
-                                <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-                                    <div className="bg-gray-900 p-8 rounded-lg shadow-lg w-full max-w-md">
-                                        <h2 className="text-2xl font-bold text-white mb-6">
-                                            {authMode === "login" ? "Sign In" : "Create Account"}
-                                        </h2>
+                                <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4">
+                                    <div className="bg-gray-900 bg-opacity-95 p-8 rounded-lg shadow-2xl w-full max-w-md border border-purple-500">
+                                        <div className="text-center mb-6">
+                                            <EntityLogo size="text-2xl" />
+                                            <h2 className="text-2xl font-bold text-white mt-4">
+                                                {authMode === "login" ? "Entity Access" : "Entity Registration"}
+                                            </h2>
+                                        </div>
                                         
                                         <form onSubmit={authMode === "login" ? handleLogin : handleRegister}>
                                             <div className="space-y-4">
+                                                {authMode === "register" && (
+                                                    <>
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="First Name"
+                                                                value={firstName}
+                                                                onChange={(e) => setFirstName(e.target.value)}
+                                                                className="form-field px-4 py-3 rounded-lg text-white focus:outline-none"
+                                                                required
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Last Name"
+                                                                value={lastName}
+                                                                onChange={(e) => setLastName(e.target.value)}
+                                                                className="form-field px-4 py-3 rounded-lg text-white focus:outline-none"
+                                                                required
+                                                            />
+                                                        </div>
+                                                        <input
+                                                            type="tel"
+                                                            placeholder="Phone Number"
+                                                            value={phone}
+                                                            onChange={(e) => setPhone(e.target.value)}
+                                                            className="form-field w-full px-4 py-3 rounded-lg text-white focus:outline-none"
+                                                            required
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Backup Email or Phone"
+                                                            value={backupContact}
+                                                            onChange={(e) => setBackupContact(e.target.value)}
+                                                            className="form-field w-full px-4 py-3 rounded-lg text-white focus:outline-none"
+                                                            required
+                                                        />
+                                                    </>
+                                                )}
                                                 <input
                                                     type="email"
                                                     placeholder="Email"
                                                     value={email}
                                                     onChange={(e) => setEmail(e.target.value)}
-                                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                                                    className="form-field w-full px-4 py-3 rounded-lg text-white focus:outline-none"
                                                     required
                                                 />
                                                 <input
@@ -300,13 +393,14 @@ html_content = '''<!DOCTYPE html>
                                                     placeholder="Password"
                                                     value={password}
                                                     onChange={(e) => setPassword(e.target.value)}
-                                                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-purple-500"
+                                                    className="form-field w-full px-4 py-3 rounded-lg text-white focus:outline-none"
                                                     required
                                                 />
                                             </div>
                                             
                                             {authError && (
                                                 <div className="mt-4 p-3 bg-red-900 bg-opacity-50 border border-red-500 rounded text-red-300 text-sm">
+                                                    <i className="fas fa-exclamation-triangle mr-2"></i>
                                                     {authError}
                                                 </div>
                                             )}
@@ -315,31 +409,41 @@ html_content = '''<!DOCTYPE html>
                                                 <button
                                                     type="submit"
                                                     disabled={authLoading}
-                                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-6 rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center justify-center"
+                                                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3 px-6 rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center justify-center neon-glow"
                                                 >
                                                     {authLoading ? (
                                                         <>
                                                             <div className="loading-spinner mr-2"></div>
-                                                            {authMode === "login" ? "Signing In..." : "Creating Account..."}
+                                                            {authMode === "login" ? "Authenticating..." : "Creating Account..."}
                                                         </>
                                                     ) : (
-                                                        authMode === "login" ? "Sign In" : "Create Account"
+                                                        <>
+                                                            <i className={`fas ${authMode === "login" ? "fa-sign-in-alt" : "fa-user-plus"} mr-2`}></i>
+                                                            {authMode === "login" ? "Access Entity" : "Create Entity Account"}
+                                                        </>
                                                     )}
                                                 </button>
                                                 
                                                 <button
                                                     type="button"
-                                                    onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}
+                                                    onClick={() => {
+                                                        setAuthMode(authMode === "login" ? "register" : "login");
+                                                        clearForm();
+                                                    }}
                                                     className="w-full text-purple-300 hover:text-purple-200 py-2 transition-all"
                                                 >
-                                                    {authMode === "login" ? "Need an account? Sign up" : "Already have an account? Sign in"}
+                                                    {authMode === "login" ? "Need access? Create account" : "Already have access? Sign in"}
                                                 </button>
                                                 
                                                 <button
                                                     type="button"
-                                                    onClick={() => setShowAuth(false)}
+                                                    onClick={() => {
+                                                        setShowAuth(false);
+                                                        clearForm();
+                                                    }}
                                                     className="w-full text-gray-400 hover:text-gray-300 py-2 transition-all"
                                                 >
+                                                    <i className="fas fa-times mr-2"></i>
                                                     Cancel
                                                 </button>
                                             </div>
@@ -358,7 +462,9 @@ html_content = '''<!DOCTYPE html>
                     <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                         <EntityLogo />
                         <div className="hidden md:flex items-center space-x-4">
-                            <span className="text-purple-300 text-sm">Welcome, {user.email}</span>
+                            <span className="text-purple-300 text-sm">
+                                Welcome, {userProfile?.firstName} {userProfile?.lastName}
+                            </span>
                             {userProfile && (
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                     userProfile.isPro ? 'bg-green-600 text-white' : 'bg-yellow-600 text-black'
@@ -385,6 +491,7 @@ html_content = '''<!DOCTYPE html>
                                 onClick={handleLogout}
                                 className="px-4 py-2 rounded text-gray-300 hover:text-red-400 hover:bg-gray-900 transition-all"
                             >
+                                <i className="fas fa-sign-out-alt mr-1"></i>
                                 Logout
                             </button>
                         </div>
@@ -406,13 +513,26 @@ html_content = '''<!DOCTYPE html>
 
                     {/* User Status Card */}
                     <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700 max-w-2xl mx-auto">
-                        <h3 className="text-xl font-semibold mb-4 text-purple-300">Your Account Status</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <h3 className="text-xl font-semibold mb-4 text-purple-300">
+                            <i className="fas fa-user-circle mr-2"></i>
+                            Account Profile
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <span className="text-gray-400">Name:</span>
+                                <p className="text-lg font-bold text-white">
+                                    {userProfile?.firstName} {userProfile?.lastName}
+                                </p>
+                            </div>
                             <div>
                                 <span className="text-gray-400">Plan:</span>
                                 <p className={`text-lg font-bold ${userProfile?.isPro ? 'text-green-400' : 'text-yellow-400'}`}>
                                     {userProfile?.isPro ? 'PRO MEMBER' : 'FREE MEMBER'}
                                 </p>
+                            </div>
+                            <div>
+                                <span className="text-gray-400">Email:</span>
+                                <p className="text-sm text-white">{userProfile?.email}</p>
                             </div>
                             <div>
                                 <span className="text-gray-400">Analyses Used:</span>
@@ -424,14 +544,18 @@ html_content = '''<!DOCTYPE html>
                         
                         {!userProfile?.isPro && (
                             <div className="mt-6 p-4 bg-gradient-to-r from-purple-900 to-pink-900 rounded-lg border border-purple-500">
-                                <h4 className="font-semibold mb-2">Upgrade to Entity Pro</h4>
+                                <h4 className="font-semibold mb-2">
+                                    <i className="fas fa-crown mr-2"></i>
+                                    Upgrade to Entity Pro
+                                </h4>
                                 <p className="text-sm text-gray-300 mb-4">
                                     Get unlimited analysis, priority support, and access to all premium features for just $19.99/month.
                                 </p>
                                 <button
                                     onClick={handleUpgradeToPro}
-                                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-lg font-semibold transition-all"
+                                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-lg font-semibold transition-all neon-glow"
                                 >
+                                    <i className="fas fa-credit-card mr-2"></i>
                                     Upgrade to Pro - $19.99/month
                                 </button>
                             </div>
@@ -440,7 +564,7 @@ html_content = '''<!DOCTYPE html>
 
                     {/* Quick Actions */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700 text-center">
+                        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700 text-center hover:border-purple-500 transition-all">
                             <div className="text-4xl mb-4">📁</div>
                             <h3 className="text-lg font-semibold mb-2">Upload Evidence</h3>
                             <p className="text-gray-400 text-sm mb-4">Upload your paranormal evidence for AI analysis</p>
@@ -448,11 +572,12 @@ html_content = '''<!DOCTYPE html>
                                 onClick={() => setCurrentView('upload')}
                                 className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded transition-all"
                             >
+                                <i className="fas fa-upload mr-2"></i>
                                 Upload Now
                             </button>
                         </div>
                         
-                        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700 text-center">
+                        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700 text-center hover:border-pink-500 transition-all">
                             <div className="text-4xl mb-4">🔍</div>
                             <h3 className="text-lg font-semibold mb-2">Start Analysis</h3>
                             <p className="text-gray-400 text-sm mb-4">Analyze your evidence with our AI</p>
@@ -461,11 +586,12 @@ html_content = '''<!DOCTYPE html>
                                 className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded transition-all"
                                 disabled={!userProfile?.isPro && userProfile?.analysisCount >= 3}
                             >
+                                <i className="fas fa-brain mr-2"></i>
                                 {!userProfile?.isPro && userProfile?.analysisCount >= 3 ? 'Limit Reached' : 'Analyze'}
                             </button>
                         </div>
                         
-                        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700 text-center">
+                        <div className="bg-gray-900 bg-opacity-50 p-6 rounded-lg border border-gray-700 text-center hover:border-blue-500 transition-all">
                             <div className="text-4xl mb-4">📊</div>
                             <h3 className="text-lg font-semibold mb-2">View Results</h3>
                             <p className="text-gray-400 text-sm mb-4">Review your analysis results</p>
@@ -473,6 +599,7 @@ html_content = '''<!DOCTYPE html>
                                 onClick={() => setCurrentView('analysis')}
                                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-all"
                             >
+                                <i className="fas fa-chart-line mr-2"></i>
                                 View Results
                             </button>
                         </div>
@@ -502,13 +629,15 @@ html_content = '''<!DOCTYPE html>
                         />
                         <label 
                             htmlFor="file-upload" 
-                            className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold cursor-pointer transition-all inline-block"
+                            className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold cursor-pointer transition-all inline-block neon-glow"
                         >
+                            <i className="fas fa-file-upload mr-2"></i>
                             Select Files
                         </label>
                         
                         <div className="mt-6 p-4 bg-yellow-900 bg-opacity-30 rounded border border-yellow-500">
                             <p className="text-yellow-300 text-sm">
+                                <i className="fas fa-info-circle mr-2"></i>
                                 {userProfile?.isPro ? 
                                     "Pro Member: Upload unlimited files" : 
                                     `Free Member: ${3 - (userProfile?.analysisCount || 0)} analyses remaining this month`
@@ -539,9 +668,10 @@ html_content = '''<!DOCTYPE html>
                         
                         <button
                             onClick={performAnalysis}
-                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-lg font-semibold transition-all"
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-lg font-semibold transition-all neon-glow"
                             disabled={!userProfile?.isPro && userProfile?.analysisCount >= 3}
                         >
+                            <i className="fas fa-magic mr-2"></i>
                             {!userProfile?.isPro && userProfile?.analysisCount >= 3 ? 
                                 'Upgrade to Pro for More Analysis' : 
                                 'Start New Analysis'
@@ -562,7 +692,7 @@ html_content = '''<!DOCTYPE html>
 
             // Main app layout
             return (
-                <div className="min-h-screen bg-black text-white">
+                <div className="min-h-screen bg-black text-white ominous-bg">
                     <Navigation />
                     <main className="container mx-auto px-4 py-8">
                         {renderCurrentView()}
@@ -577,19 +707,25 @@ html_content = '''<!DOCTYPE html>
 </html>'''
 
 # Write the file
-with open('index_with_auth.html', 'w', encoding='utf-8') as f:
+with open('entity_complete_with_full_registration.html', 'w', encoding='utf-8') as f:
     f.write(html_content)
 
-print("✅ Complete Entity Paranormal AI app with Firebase Auth and Stripe created!")
-print("📁 File saved as: index_with_auth.html")
-print("\n🔧 IMPORTANT: You need to replace these placeholders:")
+print("✅ Complete Entity Paranormal AI app with FULL REGISTRATION created!")
+print("📁 File saved as: entity_complete_with_full_registration.html")
+print("\n🔧 IMPORTANT: You still need to replace these placeholders:")
 print("1. Firebase config values (apiKey, authDomain, etc.)")
-print("2. Stripe publishable key")
-print("\n🚀 Features included:")
-print("✅ User registration/login required")
-print("✅ Free users: 3 analyses per month")
-print("✅ Pro users: Unlimited analyses ($19.99/month)")
-print("✅ Firestore database integration")
-print("✅ Stripe payment integration")
-print("✅ User profile management")
-print("✅ Feature gating based on subscription")
+print("2. Your backend URL for Stripe (if you have one)")
+print("\n🚀 NEW FEATURES:")
+print("✅ FULL REGISTRATION FORM:")
+print("   - First Name")
+print("   - Last Name") 
+print("   - Email")
+print("   - Password")
+print("   - Phone Number")
+print("   - Backup Email/Phone")
+print("✅ OMINOUS DESIGN - No preview without account!")
+print("✅ Enhanced UI with icons and better styling")
+print("✅ User profile shows full name in navigation")
+print("✅ All user data saved to Firestore")
+print("✅ Form validation for all required fields")
+print("✅ Your live Stripe key already included!")
