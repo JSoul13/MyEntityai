@@ -1,2 +1,2 @@
-# MyEntityai
-Advanced AI  Paranormal Evidence Analyzer and Community Collaboration 
+# My Entity Ai
+Advanced AI Paranormal Evidence Analyzer &  Case File Collab Portal
