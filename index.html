@@ -64,25 +64,21 @@
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        // Firebase Configuration - REPLACE WITH YOUR ACTUAL CONFIG
+        //
         const firebaseConfig = {
-            apiKey: "AIzaSyB...", // REPLACE WITH YOUR ACTUAL API KEY
+            apiKey: "AIzaSyB...", 
             authDomain: "entity-paranormal-ai.firebaseapp.com",
             projectId: "entity-paranormal-ai",
             storageBucket: "entity-paranormal-ai.appspot.com",
-            messagingSenderId: "123456789", // REPLACE WITH YOUR ACTUAL SENDER ID
-            appId: "1:123456789:web:abcdefg", // REPLACE WITH YOUR ACTUAL APP ID
-            measurementId: "G-ABCDEFG" // REPLACE WITH YOUR ACTUAL MEASUREMENT ID
+            messagingSenderId: "123456789", 
+            appId: "1:123456789:web:abcdefg", 
+            measurementId: "G-ABCDEFG" 
         };
-
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-
-        // Stripe Configuration - YOUR LIVE KEY
         const stripe = Stripe("pk_live_51RcjDXJnh7g2pvRQN6qjFRBEB3SxiTdzrgijbrslDy4G2XbGSHBpOAhKZ8G7U3rSGGmbpQCqM8hZmcxZx1mYpBrv00iVexVeNG");
-
         function App() {
             const [user, setUser] = React.useState(null);
             const [userProfile, setUserProfile] = React.useState(null);
